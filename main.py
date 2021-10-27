@@ -16,6 +16,8 @@ KIWI_TEQUILA_API_KEY = environ["KIWI_TEQUILA_API_KEY"]
 KIWI_TEQUILA_SEARCH_ENDPOINT = environ["KIWI_TEQUILA_SEARCH_ENDPOINT"]
 KIWI_TEQUILA_LOCATIONS_ENDPOINT = environ["KIWI_TEQUILA_LOCATIONS_ENDPOINT"]
 
+UPDATE_IATA_CODES = False
+
 data_manager = DataManager(auth_token=SHEETY_AUTH_TOKEN,
                            endpoint=SHEETY_ENDPOINT)
 
@@ -29,12 +31,14 @@ flight_search = FlightSearch(api_key=KIWI_TEQUILA_API_KEY,
 
 
 # Update IATA codes:
-for city_record in tqdm(data_manager.sheet_data):
-    city_name = city_record["city"]
-    city_id = city_record["id"]
+if UPDATE_IATA_CODES:
+    for city_record in tqdm(data_manager.sheet_data):
+        city_name = city_record["city"]
+        city_id = city_record["id"]
 
-    code = flight_search.get_iata_code(city_name)
-    city_record["iataCode"] = code
+        code = flight_search.get_iata_code(city_name)
+        city_record["iataCode"] = code
+        data_manager.edit_row(row_id=city_id, iata_code=code)
 
-    data_manager.edit_row(row_id=city_id, iata_code=code)
-
+data = flight_search.search_flights(iata_code="PAR", max_price=100)
+print(data)
