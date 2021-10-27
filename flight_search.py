@@ -1,9 +1,14 @@
 import requests
 from datetime import datetime, timedelta
 from flight_data import FlightData
-from misc import jprint
 
 DEPARTURE_COUNTRY = "BA"
+
+
+class NoFlightsError(Exception):
+
+    def __init__(self):
+        super().__init__("No flights found")
 
 
 class FlightSearch:
@@ -55,7 +60,10 @@ class FlightSearch:
                                       curr="EUR",
                                       limit=1
                                       )
-        data = response.json()
-        # jprint(data)
-        data = FlightData(data)
-        return data
+        response_data = response.json()
+        if len(response_data["data"]) == 0:
+            raise NoFlightsError
+        flight_data = FlightData(response_data)
+        if flight_data.from_data.arrival_code != iata_code:
+            raise NoFlightsError
+        return flight_data

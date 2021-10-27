@@ -13,6 +13,8 @@ class FlightData:
         flight_no: int
         departure_time: str
         arrival_time: str
+        departure_date: str
+        arrival_date: str
 
         def __init__(self, route_data: dict):
             self.departure_city = route_data["cityFrom"]
@@ -24,9 +26,16 @@ class FlightData:
             self.airline = route_data["airline"]
             self.flight_no = route_data["flight_no"]
 
-            # PARSE THESE TIME STRINGS!!!
-            self.departure_time = route_data["local_departure"]
-            self.arrival_time = route_data["local_arrival"]
+            def parse_datetime(datetime: str):
+                datetime = datetime[:-1]
+                datetime_split = datetime.split('T')
+                return datetime_split[0], datetime_split[1][:-7]
+
+            departure_datetime = route_data["local_departure"]
+            arrival_datetime = route_data["local_arrival"]
+
+            self.departure_date, self.departure_time = parse_datetime(departure_datetime)
+            self.arrival_date, self.arrival_time = parse_datetime(arrival_datetime)
 
     from_data: OneWayData
     back_data: OneWayData
@@ -36,6 +45,7 @@ class FlightData:
 
     def __init__(self, data_dict: dict):
         data = data_dict["data"][0]
+
         self.no_of_nights = data["nightsInDest"]
         self.price = data["price"]
 
@@ -45,6 +55,14 @@ class FlightData:
         self.from_data = self.OneWayData(from_route)
         self.back_data = self.OneWayData(back_route)
 
+    def make_email(self):
+        message = f"Greetings! I found a flight from {self.from_data.departure_city} to {self.from_data.arrival_city}" \
+                  f" on {self.from_data.departure_date} at {self.from_data.departure_time}, " \
+                  f"on airline {self.from_data.airline},flight no {self.from_data.flight_no}. " \
+                  f"The price of the flight is {self.price} Euros, and the number of nights that you would spend is " \
+                  f"{self.no_of_nights}. The flight back is from {self.back_data.departure_city} on " \
+                  f"{self.back_data.departure_date} at {self.back_data.departure_time}, on airline " \
+                  f"{self.back_data.airline}, flight no {self.back_data.flight_no}. " \
+                  f"This program can be improved to reserve a ticket, but it's not yet implemented. "
 
-
-
+        return message

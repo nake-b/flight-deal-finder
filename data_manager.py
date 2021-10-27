@@ -1,5 +1,5 @@
 import requests
-from misc import camel_case, jprint
+from misc import camel_case
 
 
 class DataManager:
