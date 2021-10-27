@@ -1,17 +1,5 @@
 import requests
-from re import sub
-
-
-def camel_case(string: str) -> str:
-    """
-    Return camelCase of a given string
-
-    :param string: the string to be converted
-    :return: the string in camelCase
-    :rtype: str
-    """
-    string = sub(r"(_|-)+", " ", string).title().replace(" ", "")
-    return ''.join([string[0].lower(), string[1:]])
+from misc import camel_case, jprint
 
 
 class DataManager:
@@ -27,11 +15,13 @@ class DataManager:
         self.endpoint = endpoint
 
         self.sheet_name = self.endpoint.split('/')[-1]
-        self.sheet_post_request_name = self.sheet_name[:-1] if self.sheet_name[-1] == 's' else self.sheet_name
+        self.sheet_request_name = self.sheet_name[:-1] if self.sheet_name[-1] == 's' else self.sheet_name
 
         self.get_headers = {"Authorization": "Bearer " + auth_token}
         self.post_headers = self.get_headers
         self.post_headers["Content-Type"] = "application/json"
+
+        self.sheet_data = self.get_rows()
 
     def __get_request(self, **kwargs) -> requests.request:
         """
@@ -43,6 +33,15 @@ class DataManager:
         """
         response = requests.get(url=self.endpoint,
                                 params=kwargs,
+                                headers=self.get_headers)
+        response.raise_for_status()
+        return response
+
+    def __put_request(self, row_id, **kwargs) -> requests.request:
+        payload = {self.sheet_request_name: kwargs}
+        endpoint = self.endpoint + f"/{row_id}"
+        response = requests.put(url=endpoint,
+                                json=payload,
                                 headers=self.get_headers)
         response.raise_for_status()
         return response
@@ -85,3 +84,6 @@ class DataManager:
         response = self.__get_request(**payload)
         data = response.json()["prices"]
         return data
+
+    def edit_row(self, row_id, **kwargs):
+        self.__put_request(row_id, **kwargs)

@@ -1,10 +1,4 @@
 import requests
-import json
-
-
-# Auxiliary function
-def jprint(dictionary):
-    print(json.dumps(dictionary, indent=2))
 
 
 class FlightSearch:
